@@ -1,8 +1,10 @@
 import { Link, useLocation } from 'react-router';
-import { LayoutGrid, Bell, History, Settings, Coffee } from 'lucide-react';
+import { LayoutGrid, Bell, History, Settings, Coffee, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export function Sidebar() {
   const location = useLocation();
+  const { signOut } = useAuth();
 
   const navItems = [
     { path: '/', label: 'Panel de Hidratación', icon: LayoutGrid },
@@ -20,7 +22,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-4 flex flex-col justify-between">
         <ul className="space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -42,6 +44,14 @@ export function Sidebar() {
             );
           })}
         </ul>
+
+        <button
+          onClick={signOut}
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors w-full text-left mt-auto"
+        >
+          <LogOut className="w-4 h-4" />
+          <span className="text-sm">Cerrar Sesión</span>
+        </button>
       </nav>
 
       <div className="p-4 border-t border-gray-200 text-xs text-gray-600 space-y-1">
