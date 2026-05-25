@@ -1,13 +1,17 @@
-import { Share2, Bell, AlertCircle, Coffee, History, Activity, Droplets } from 'lucide-react';
+import { useState } from 'react';
+import { Share2, Bell, AlertCircle, Coffee, History, Activity, Wifi, Plug, Unplug, Link as LinkIcon, Unlink } from 'lucide-react';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
 import { useHydration } from '../context/HydrationContext';
 
 export function HydrationDashboard() {
   const {
-    consumed, dailyGoal, events, addAlert, currentWeight, isGlassLifted, alerts,
-    simulateLift, simulateDrink, simulateRefill, simulatePlace, virtualAirWeight
+    consumed, dailyGoal, events, alerts,
+    isConnected, connectESP, disconnectESP, portError,
+    linkedDeviceMac, linkDevice, unlinkDevice
   } = useHydration();
+
+  const [macInput, setMacInput] = useState('');
 
   const percentage = Math.min(100, Math.round((consumed / dailyGoal) * 100));
   const activeAlerts = alerts.filter(a => !a.resolved);
@@ -16,49 +20,89 @@ export function HydrationDashboard() {
     <div className="flex-1 bg-gray-50 p-8 overflow-auto">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-start mb-8">
           <h1 className="text-3xl">Panel de Hidratación</h1>
 
-          {/* Interactive Hardware Simulator */}
-          <div className="flex flex-col bg-white p-4 rounded-lg border border-blue-200 shadow-sm w-full max-w-lg">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-xs text-blue-600 font-semibold uppercase tracking-wider">Simulador Interactivo (Celda de Carga)</span>
-              <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded font-medium">
-                Lectura sensor: {currentWeight}g
-              </span>
+          {/* Connection Panels Container */}
+          <div className="flex gap-4">
+            {/* Wi-Fi / Hybrid Hardware Connection Panel */}
+            <div className="flex flex-col bg-white p-4 rounded-lg border border-purple-200 shadow-sm w-[300px]">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-xs text-purple-600 font-semibold uppercase tracking-wider">Modo Wi-Fi (Nube)</span>
+                {linkedDeviceMac && (
+                  <span className="flex h-3 w-3 relative">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-purple-500"></span>
+                  </span>
+                )}
+              </div>
+
+              {!linkedDeviceMac ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs text-gray-500 mb-1">Ingresa la MAC de la pantalla OLED.</p>
+                  <input 
+                    type="text" 
+                    placeholder="Ej: 1A:2B:3C:4D:5E:6F"
+                    className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                    value={macInput}
+                    onChange={(e) => setMacInput(e.target.value.toUpperCase())}
+                  />
+                  <Button 
+                    onClick={() => { if(macInput.length >= 10) linkDevice(macInput); }} 
+                    disabled={macInput.length < 10}
+                    className="bg-purple-600 hover:bg-purple-700 text-white border-0 h-8 mt-1 w-full"
+                  >
+                    <LinkIcon className="w-3 h-3 mr-2" /> Vincular Dispositivo
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <div className="bg-purple-50 p-2 rounded border border-purple-100 flex flex-col items-center h-[54px] justify-center">
+                    <div className="flex items-center gap-2">
+                      <Wifi className="w-4 h-4 text-purple-600" />
+                      <span className="text-sm text-purple-800 font-mono font-medium">{linkedDeviceMac}</span>
+                    </div>
+                  </div>
+                  <Button variant="outline" onClick={unlinkDevice} className="text-red-600 border-red-200 hover:bg-red-50 h-8 text-xs w-full">
+                    <Unlink className="w-3 h-3 mr-2" /> Desvincular
+                  </Button>
+                </div>
+              )}
             </div>
 
-            {!isGlassLifted ? (
-              <div className="flex items-center justify-between gap-4 bg-gray-50 p-3 rounded border border-gray-100">
-                <div className="flex items-center gap-2 text-sm text-gray-700">
-                  <Coffee className="w-4 h-4 text-gray-500" />
-                  Vaso en el posavasos
-                </div>
-                <Button onClick={simulateLift} className="bg-blue-600 hover:bg-blue-700 text-white border-0 h-9">
-                  <Activity className="w-4 h-4 mr-2" /> Levantar Vaso
-                </Button>
+            {/* USB Local Hardware Connection Panel */}
+            <div className="flex flex-col bg-white p-4 rounded-lg border border-blue-200 shadow-sm w-[300px]">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-xs text-blue-600 font-semibold uppercase tracking-wider">Modo Local (USB)</span>
+                <span className={`text-xs font-mono px-2 py-1 rounded font-medium ${isConnected ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                  {isConnected ? 'Conectado' : 'Desconectado'}
+                </span>
               </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <div className="flex justify-between items-center bg-blue-50 text-blue-800 px-3 py-2 rounded border border-blue-100">
-                  <span className="text-sm font-medium flex items-center gap-2">
-                    <Activity className="w-4 h-4" /> ¡Vaso en el aire! (0g en base)
-                  </span>
-                  <span className="text-xs font-mono">Peso del vaso: {virtualAirWeight}g</span>
+
+              {portError && (
+                <div className="mb-2 text-xs text-red-600 bg-red-50 p-2 rounded">
+                  {portError}
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => simulateDrink(50)} className="flex-1 text-xs h-9 hover:bg-blue-50">
-                    Tomar 50ml (-50g)
-                  </Button>
-                  <Button variant="outline" onClick={() => simulateRefill(250)} className="flex-1 text-xs h-9 hover:bg-blue-50">
-                    <Droplets className="w-4 h-4 mr-1" /> Rellenar (+250g)
-                  </Button>
-                  <Button onClick={simulatePlace} className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs h-9 border-0">
-                    Volver a asentar
+              )}
+
+              {!isConnected ? (
+                <div className="flex flex-col gap-2 h-full justify-end">
+                  <p className="text-xs text-gray-500 mb-1">Conecta el ESP32 para sincronizar vía cable.</p>
+                  <Button onClick={connectESP} className="bg-blue-600 hover:bg-blue-700 text-white border-0 h-8 w-full mt-1">
+                    <Plug className="w-3 h-3 mr-2" /> Conectar ESP32
                   </Button>
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="flex flex-col gap-3 h-full justify-end">
+                  <div className="flex items-center justify-center bg-green-50 p-2 rounded border border-green-100 h-[54px]">
+                    <span className="text-sm text-green-700 font-medium text-center flex items-center"><Plug className="w-4 h-4 mr-2" /> Sync USB Activo</span>
+                  </div>
+                  <Button variant="outline" onClick={disconnectESP} className="text-red-600 border-red-200 hover:bg-red-50 h-8 text-xs w-full">
+                    <Unplug className="w-3 h-3 mr-2" /> Desconectar
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -96,7 +140,7 @@ export function HydrationDashboard() {
 
             <div className="mt-8 text-center">
               <div className="font-semibold">Aro LED WS2812B</div>
-              <div className="text-sm text-gray-600">(Visualización de progreso físico)</div>
+              <div className="text-sm text-gray-600">(Sincronizado con progreso web)</div>
             </div>
           </div>
 
@@ -115,7 +159,7 @@ export function HydrationDashboard() {
                 </div>
                 <Progress value={percentage} className="h-2 transition-all duration-1000" />
                 <div className="text-xs text-gray-500">
-                  Barra de progreso semanal
+                  Barra de progreso
                 </div>
               </div>
             </div>
@@ -183,10 +227,10 @@ export function HydrationDashboard() {
                     </td>
                     <td
                       className={`py-3 px-4 text-sm text-right ${event.positive
-                          ? 'text-green-600 font-medium'
-                          : event.alert
-                            ? 'text-gray-400'
-                            : ''
+                        ? 'text-green-600 font-medium'
+                        : event.alert
+                          ? 'text-gray-400'
+                          : ''
                         }`}
                     >
                       {event.delta}
@@ -199,7 +243,7 @@ export function HydrationDashboard() {
 
           <div className="mt-4 text-center">
             <button className="text-sm text-gray-600 hover:text-gray-900 underline">
-              Ver: historial completo (.JSON / .CSV)
+              Ver: historial completo
             </button>
           </div>
         </div>
@@ -208,20 +252,17 @@ export function HydrationDashboard() {
         <div className="mt-8 pt-6 border-t border-gray-300 text-center text-xs text-gray-600 space-y-2">
           <div className="flex justify-center gap-8">
             <div className="flex flex-col items-center">
-              <Coffee className="w-5 h-5 mb-1" />
-              <div>ESP32 conectado vía USB</div>
+              <Coffee className="w-5 h-5 mb-1 text-blue-500" />
+              <div>USB: {isConnected ? 'Online' : 'Offline'}</div>
             </div>
             <div className="flex flex-col items-center">
-              <AlertCircle className="w-5 h-5 mb-1" />
-              <div>Local RF Sync OK</div>
+              <Wifi className="w-5 h-5 mb-1 text-purple-500" />
+              <div>Wi-Fi: {linkedDeviceMac ? 'Vinculado' : 'No vinculado'}</div>
             </div>
             <div className="flex flex-col items-center">
-              <Share2 className="w-5 h-5 mb-1" />
-              <div>MQTT Offline</div>
+              <AlertCircle className="w-5 h-5 mb-1 text-green-500" />
+              <div>Supabase Realtime OK</div>
             </div>
-          </div>
-          <div className="italic mt-4">
-            Esta es un prototipo de App. Realidad fue 257 peticiones en los últimos del usuario, y centro del sistema 173MB Model: PytPY3
           </div>
         </div>
       </div>

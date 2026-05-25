@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router';
 import { Sidebar } from '../components/Sidebar';
 import { HydrationProvider } from '../context/HydrationContext';
+import { ToastContainer } from '../components/ToastContainer';
 
 export function Root() {
   return (
@@ -9,6 +10,7 @@ export function Root() {
         <Sidebar />
         <Outlet />
       </div>
+      <ToastContainer />
     </HydrationProvider>
   );
 }

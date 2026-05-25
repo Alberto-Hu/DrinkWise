@@ -1,22 +1,71 @@
-import { Download, Calendar, Filter } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Download, Calendar, Filter, X } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 import { useHydration } from '../context/HydrationContext';
 
+type DayRecord = {
+  date: string;
+  consumed_ml: number;
+  goal_ml: number;
+};
+
+type FilterMode = 'all' | '7d' | '30d';
+
 export function HistoryPage() {
+  const { user } = useAuth();
   const { consumed, dailyGoal, events } = useHydration();
+  const [records, setRecords] = useState<DayRecord[]>([]);
+  const [filter, setFilter] = useState<FilterMode>('all');
+  const [loading, setLoading] = useState(true);
 
-  const percentage = Math.min(100, Math.round((consumed / dailyGoal) * 100));
-  const todayStr = new Date().toLocaleDateString('es-ES');
+  useEffect(() => {
+    if (!user) return;
+    const loadHistory = async () => {
+      setLoading(true);
+      let query = supabase
+        .from('daily_hydration')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false });
 
-  const historyData = [
-    { date: todayStr, consumption: `${consumed}ml`, goal: `${dailyGoal}ml`, percentage: percentage, events: events.length },
-    { date: '22/03/2026', consumption: '1800ml', goal: '2000ml', percentage: 90, events: 24 },
-    { date: '21/03/2026', consumption: '1600ml', goal: '2000ml', percentage: 80, events: 18 },
-    { date: '20/03/2026', consumption: '2100ml', goal: '2000ml', percentage: 105, events: 28 },
-    { date: '19/03/2026', consumption: '1500ml', goal: '2000ml', percentage: 75, events: 16 },
-    { date: '18/03/2026', consumption: '1900ml', goal: '2000ml', percentage: 95, events: 22 },
-    { date: '17/03/2026', consumption: '1700ml', goal: '2000ml', percentage: 85, events: 20 },
-  ];
+      if (filter === '7d') {
+        const d = new Date(); d.setDate(d.getDate() - 7);
+        query = query.gte('date', d.toISOString().split('T')[0]);
+      } else if (filter === '30d') {
+        const d = new Date(); d.setDate(d.getDate() - 30);
+        query = query.gte('date', d.toISOString().split('T')[0]);
+      }
+
+      const { data } = await query;
+      if (data) setRecords(data);
+      setLoading(false);
+    };
+    loadHistory();
+  }, [user, filter]);
+
+  const percentage = (c: number, g: number) => Math.min(105, Math.round((c / g) * 100));
+
+  const exportCSV = () => {
+    const header = 'Fecha,Consumo (ml),Meta (ml),% Logrado\n';
+    const rows = records.map(r =>
+      `${r.date},${r.consumed_ml},${r.goal_ml},${percentage(r.consumed_ml, r.goal_ml)}`
+    ).join('\n');
+    const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `drinkwise_historial_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const filterLabel: Record<FilterMode, string> = {
+    all: 'Todos',
+    '7d': 'Últimos 7 días',
+    '30d': 'Últimos 30 días',
+  };
 
   return (
     <div className="flex-1 bg-gray-50 p-8 overflow-auto">
@@ -24,84 +73,92 @@ export function HistoryPage() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl">Historial</h1>
           <div className="flex gap-3">
-            <Button variant="outline">
-              <Filter className="w-4 h-4 mr-2" />
-              Filtrar
-            </Button>
-            <Button variant="outline">
-              <Calendar className="w-4 h-4 mr-2" />
-              Rango de Fechas
-            </Button>
-            <Button className="bg-gray-900 hover:bg-gray-800">
+            {/* Filter Dropdown */}
+            <div className="relative flex gap-1 bg-white border border-gray-200 rounded-lg p-1">
+              {(['all', '7d', '30d'] as FilterMode[]).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${filter === f ? 'bg-gray-900 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                >
+                  {filterLabel[f]}
+                </button>
+              ))}
+            </div>
+            <Button onClick={exportCSV} className="bg-gray-900 hover:bg-gray-800 text-white">
               <Download className="w-4 h-4 mr-2" />
-              Exportar
+              Exportar CSV
             </Button>
           </div>
         </div>
 
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left py-4 px-6 font-medium">Fecha</th>
-                  <th className="text-left py-4 px-6 font-medium">Consumo</th>
-                  <th className="text-left py-4 px-6 font-medium">Meta</th>
-                  <th className="text-left py-4 px-6 font-medium">% Logrado</th>
-                  <th className="text-left py-4 px-6 font-medium">Eventos</th>
-                  <th className="text-right py-4 px-6 font-medium">Progreso</th>
-                </tr>
-              </thead>
-              <tbody>
-                {historyData.map((day, index) => (
-                  <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-4 px-6">{day.date}</td>
-                    <td className="py-4 px-6 font-medium">{day.consumption}</td>
-                    <td className="py-4 px-6 text-gray-600">{day.goal}</td>
-                    <td className="py-4 px-6">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${
-                          day.percentage >= 100
-                            ? 'bg-green-100 text-green-800'
-                            : day.percentage >= 75
-                            ? 'bg-blue-100 text-blue-800'
-                            : day.percentage >= 50
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {day.percentage}%
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-gray-600">{day.events}</td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 bg-gray-200 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full ${
-                              day.percentage >= 100
-                                ? 'bg-green-500'
-                                : day.percentage >= 75
-                                ? 'bg-blue-500'
-                                : day.percentage >= 50
-                                ? 'bg-yellow-500'
-                                : 'bg-red-500'
-                            }`}
-                            style={{ width: `${Math.min(day.percentage, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                    </td>
+          {loading ? (
+            <div className="p-12 text-center text-gray-500">Cargando historial...</div>
+          ) : records.length === 0 ? (
+            <div className="p-12 text-center text-gray-500">No hay datos para el rango seleccionado.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left py-4 px-6 font-medium">Fecha</th>
+                    <th className="text-left py-4 px-6 font-medium">Consumo</th>
+                    <th className="text-left py-4 px-6 font-medium">Meta</th>
+                    <th className="text-left py-4 px-6 font-medium">% Logrado</th>
+                    <th className="text-right py-4 px-6 font-medium">Progreso</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {records.map((day, idx) => {
+                    const pct = percentage(day.consumed_ml, day.goal_ml);
+                    const color = pct >= 100 ? 'green' : pct >= 75 ? 'blue' : pct >= 50 ? 'yellow' : 'red';
+                    const badge: Record<string, string> = {
+                      green: 'bg-green-100 text-green-800',
+                      blue: 'bg-blue-100 text-blue-800',
+                      yellow: 'bg-yellow-100 text-yellow-800',
+                      red: 'bg-red-100 text-red-800',
+                    };
+                    const bar: Record<string, string> = {
+                      green: 'bg-green-500',
+                      blue: 'bg-blue-500',
+                      yellow: 'bg-yellow-500',
+                      red: 'bg-red-500',
+                    };
+                    return (
+                      <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-4 px-6">{day.date}</td>
+                        <td className="py-4 px-6 font-medium">{day.consumed_ml}ml</td>
+                        <td className="py-4 px-6 text-gray-600">{day.goal_ml}ml</td>
+                        <td className="py-4 px-6">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium ${badge[color]}`}>
+                            {pct}%
+                          </span>
+                        </td>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center gap-3 justify-end">
+                            <div className="w-32 bg-gray-200 rounded-full h-2">
+                              <div
+                                className={`h-2 rounded-full ${bar[color]}`}
+                                style={{ width: `${Math.min(pct, 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
-        <div className="mt-6 text-center">
-          <Button variant="outline">Cargar más resultados</Button>
-        </div>
+        {records.length > 0 && (
+          <p className="mt-4 text-center text-sm text-gray-500">
+            Mostrando {records.length} {records.length === 1 ? 'día' : 'días'} · {filterLabel[filter]}
+          </p>
+        )}
       </div>
     </div>
   );
