@@ -1,10 +1,12 @@
 import { Link, useLocation } from 'react-router';
 import { LayoutGrid, Bell, History, Settings, Coffee, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useHydration } from '../context/HydrationContext';
 
 export function Sidebar() {
   const location = useLocation();
   const { signOut } = useAuth();
+  const { isConnected, linkedDeviceMac } = useHydration();
 
   const navItems = [
     { path: '/', label: 'Panel de Hidratación', icon: LayoutGrid },
@@ -57,8 +59,8 @@ export function Sidebar() {
       <div className="p-4 border-t border-gray-200 text-xs text-gray-600 space-y-1">
         <div>Versión: 0.1.0 beta</div>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-          <span>ESP32 conectado vía USB</span>
+          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : linkedDeviceMac ? 'bg-blue-500' : 'bg-gray-400'}`}></div>
+          <span>{isConnected ? 'USB Conectado' : linkedDeviceMac ? 'Wi-Fi Vinculado' : 'Desconectado'}</span>
         </div>
       </div>
     </aside>
