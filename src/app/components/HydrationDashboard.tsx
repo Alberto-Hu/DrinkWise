@@ -8,7 +8,7 @@ export function HydrationDashboard() {
   const {
     consumed, dailyGoal, events, alerts,
     isConnected, connectESP, disconnectESP, portError,
-    linkedDeviceMac, linkDevice, unlinkDevice
+    linkedDeviceMac, linkDevice, unlinkDevice, settings
   } = useHydration();
 
   const [macInput, setMacInput] = useState('');
@@ -139,7 +139,7 @@ export function HydrationDashboard() {
             </div>
 
             <div className="mt-8 text-center">
-              <div className="font-semibold">Aro LED WS2812B</div>
+              <div className="font-semibold">{settings?.device_name || 'Aro LED WS2812B'}</div>
               <div className="text-sm text-gray-600">(Sincronizado con progreso web)</div>
             </div>
           </div>

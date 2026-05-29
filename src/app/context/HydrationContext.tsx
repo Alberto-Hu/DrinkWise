@@ -179,7 +179,8 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
         .from('user_devices')
         .select('mac_address')
         .eq('user_id', user.id)
-        .single();
+        .limit(1)
+        .maybeSingle();
       if (deviceData) setLinkedDeviceMac(deviceData.mac_address);
 
       // 4. User Settings
@@ -187,7 +188,8 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
         .from('user_settings')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .limit(1)
+        .maybeSingle();
       if (settingsData) {
         setSettings({
           device_name: settingsData.device_name ?? DEFAULT_SETTINGS.device_name,
@@ -264,7 +266,9 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
   // ─── Device Linking ───────────────────────────────────────────────────────────
   const linkDevice = async (mac: string) => {
     if (!user) return;
-    await supabase.from('user_devices').upsert({ mac_address: mac, user_id: user.id });
+    // Remove previous devices to ensure 1-to-1 mapping
+    await supabase.from('user_devices').delete().eq('user_id', user.id);
+    await supabase.from('user_devices').insert({ mac_address: mac, user_id: user.id });
     setLinkedDeviceMac(mac);
     showToast(`Dispositivo ${mac} vinculado.`, 'success');
   };

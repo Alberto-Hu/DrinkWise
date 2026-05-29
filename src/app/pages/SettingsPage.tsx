@@ -7,7 +7,7 @@ import { Switch } from '../components/ui/switch';
 import { useHydration } from '../context/HydrationContext';
 
 export function SettingsPage() {
-  const { dailyGoal, setDailyGoal, clearHistory, settings, saveSettings, showToast } = useHydration();
+  const { dailyGoal, setDailyGoal, clearHistory, settings, saveSettings, showToast, isConnected, linkedDeviceMac } = useHydration();
 
   // Local copy of settings for editing
   const [localSettings, setLocalSettings] = useState(settings);
@@ -144,6 +144,11 @@ export function SettingsPage() {
                   checked={localSettings.led_enabled}
                   onCheckedChange={v => setLocalSettings(s => ({ ...s, led_enabled: v }))}
                 />
+              </div>
+              <div className="pt-4 border-t border-gray-200">
+                <div className="text-sm text-gray-600 space-y-1">
+                  <div>Estado: <span className="font-medium text-gray-900">{isConnected ? '🟢 Conectado vía USB' : linkedDeviceMac ? '🔵 Vinculado vía Wi-Fi' : '⚪ Desconectado'}</span></div>
+                </div>
               </div>
             </div>
           </div>
