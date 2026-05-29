@@ -5,7 +5,7 @@ import { useHydration } from '../context/HydrationContext';
 
 export function Sidebar() {
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { isConnected, linkedDeviceMac } = useHydration();
 
   const navItems = [
@@ -47,13 +47,18 @@ export function Sidebar() {
           })}
         </ul>
 
-        <button
-          onClick={signOut}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors w-full text-left mt-auto"
-        >
-          <LogOut className="w-4 h-4" />
-          <span className="text-sm">Cerrar Sesión</span>
-        </button>
+        <div className="mt-auto space-y-2">
+          <div className="px-3 py-2 text-xs text-gray-500 font-medium truncate" title={user?.email}>
+            {user?.email}
+          </div>
+          <button
+            onClick={signOut}
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors w-full text-left"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-sm">Cerrar Sesión</span>
+          </button>
+        </div>
       </nav>
 
       <div className="p-4 border-t border-gray-200 text-xs text-gray-600 space-y-1">
