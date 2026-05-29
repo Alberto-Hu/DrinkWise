@@ -143,8 +143,14 @@ void loop() {
     String command = Serial.readStringUntil('\n');
     command.trim();
     if (command.startsWith("PROGRESS:")) {
-      currentProgressPercent = command.substring(9).toFloat();
-      updateLedRing(currentProgressPercent);
+      float val = command.substring(9).toFloat();
+      if (val < 0) {
+        currentProgressPercent = -val;
+        updateLedRing(0.0);
+      } else {
+        currentProgressPercent = val;
+        updateLedRing(currentProgressPercent);
+      }
     }
   }
 
@@ -236,8 +242,14 @@ void sendDrinkToSupabase(int amount) {
   
   if (httpResponseCode == 200) {
     String response = http.getString();
-    currentProgressPercent = response.toFloat();
-    updateLedRing(currentProgressPercent);
+    float val = response.toFloat();
+    if (val < 0) {
+      currentProgressPercent = -val;
+      updateLedRing(0.0);
+    } else {
+      currentProgressPercent = val;
+      updateLedRing(currentProgressPercent);
+    }
   } else { 
     if (amount > 0) {
       Serial.print("Error enviando por Wi-Fi. HTTP Code: ");

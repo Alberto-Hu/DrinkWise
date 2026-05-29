@@ -237,7 +237,8 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isConnected && writerRef.current) {
       const percent = Math.min(100, Math.round((consumed / dailyGoal) * 100));
-      sendSerialCommand(`PROGRESS:${settings.led_enabled ? percent : 0}\n`);
+      const valToSend = settings.led_enabled || percent === 0 ? percent : -percent;
+      sendSerialCommand(`PROGRESS:${valToSend}\n`);
     }
   }, [consumed, dailyGoal, isConnected, settings.led_enabled]);
 
@@ -365,7 +366,8 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
 
       setTimeout(() => {
         const percent = Math.min(100, Math.round((consumedRef.current / dailyGoal) * 100));
-        sendSerialCommand(`PROGRESS:${settings.led_enabled ? percent : 0}\n`);
+        const valToSend = settings.led_enabled || percent === 0 ? percent : -percent;
+        sendSerialCommand(`PROGRESS:${valToSend}\n`);
       }, 1500);
     } catch (err: any) {
       setPortError('Error de conexión: ' + err.message);
