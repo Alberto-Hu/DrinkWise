@@ -12,6 +12,10 @@ export type UserSettings = {
   reminder_interval_min: number;
 };
 
+const getLocalISODate = (d: Date = new Date()) => {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 interface HydrationContextType {
   consumed: number;
   dailyGoal: number;
@@ -37,7 +41,7 @@ interface HydrationContextType {
   // Hybrid Wi-Fi API
   linkedDeviceMac: string | null;
   linkDevice: (mac: string) => Promise<void>;
-  unlinkDevice: () => Promise<void>;
+  unlinkDevice: () => void;
 }
 
 const DEFAULT_SETTINGS: UserSettings = {
@@ -127,7 +131,7 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
     }
 
     const loadData = async () => {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalISODate();
 
       // 1. Hydration
       const { data: hydrationData } = await supabase
@@ -307,7 +311,7 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
     setEvents(prev => [newEvent, ...prev]);
 
     if (user) {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalISODate();
       if (mlAmount > 0) {
         await supabase.from('daily_hydration')
           .update({ consumed_ml: newConsumed })
@@ -336,7 +340,7 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
 
   const clearHistory = async () => {
     if (!user) return;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalISODate();
     await supabase.from('hydration_events').delete().eq('user_id', user.id);
     await supabase.from('daily_hydration').update({ consumed_ml: 0 }).eq('user_id', user.id).eq('date', today);
     setEvents([]);
@@ -434,7 +438,7 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
     setEvents(prev => [newEvent, ...prev]);
 
     if (user) {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalISODate();
       supabase.from('daily_hydration').update({ consumed_ml: newConsumed }).eq('user_id', user.id).eq('date', today).then();
       supabase.from('hydration_events').insert({
         user_id: user.id, time_str: timeStr, event_name: 'Sorbos detectados (USB Serial)', amount_ml: amount,

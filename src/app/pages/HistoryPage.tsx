@@ -11,6 +11,10 @@ type DayRecord = {
   goal_ml: number;
 };
 
+const getLocalISODate = (d: Date = new Date()) => {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 type FilterMode = 'all' | '7d' | '30d';
 
 export function HistoryPage() {
@@ -32,10 +36,10 @@ export function HistoryPage() {
 
       if (filter === '7d') {
         const d = new Date(); d.setDate(d.getDate() - 7);
-        query = query.gte('date', d.toISOString().split('T')[0]);
+        query = query.gte('date', getLocalISODate(d));
       } else if (filter === '30d') {
         const d = new Date(); d.setDate(d.getDate() - 30);
-        query = query.gte('date', d.toISOString().split('T')[0]);
+        query = query.gte('date', getLocalISODate(d));
       }
 
       const { data } = await query;
@@ -56,8 +60,10 @@ export function HistoryPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `drinkwise_historial_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `drinkwise_historial_${getLocalISODate()}.csv`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
