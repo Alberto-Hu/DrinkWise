@@ -21,8 +21,7 @@ export function SettingsPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    setDailyGoal(localGoal);
-    await saveSettings(localSettings);
+    await saveSettings(localSettings, localGoal);
     setSaving(false);
   };
 

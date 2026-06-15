@@ -30,7 +30,7 @@ interface HydrationContextType {
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   dismissToast: (id: number) => void;
   settings: UserSettings;
-  saveSettings: (s: UserSettings) => Promise<void>;
+  saveSettings: (s: UserSettings, newDailyGoal: number) => Promise<void>;
 
   // Web Serial API (USB)
   isConnected: boolean;
@@ -247,10 +247,10 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
   }, [consumed, dailyGoal, isConnected, settings.led_enabled]);
 
   // ─── Settings ────────────────────────────────────────────────────────────────
-  const saveSettings = async (newSettings: UserSettings) => {
+  const saveSettings = async (newSettings: UserSettings, newDailyGoal: number) => {
     if (!user) return;
     setSettings(newSettings);
-    setDailyGoal(newSettings.daily_goal); // keep in sync
+    setDailyGoal(newDailyGoal); // keep in sync
 
     const { error } = await supabase.from('user_settings').upsert({
       user_id: user.id,
@@ -258,12 +258,12 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
       led_enabled: newSettings.led_enabled,
       alerts_enabled: newSettings.alerts_enabled,
       reminder_interval_min: newSettings.reminder_interval_min,
-      daily_goal: newSettings.daily_goal,
+      daily_goal: newDailyGoal,
     });
 
     // Sincronizar la meta de hoy para el dispositivo Wi-Fi
     await supabase.from('daily_hydration')
-      .update({ goal_ml: newSettings.daily_goal })
+      .update({ goal_ml: newDailyGoal })
       .eq('user_id', user.id)
       .eq('date', getLocalISODate());
 
