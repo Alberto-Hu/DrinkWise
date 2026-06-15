@@ -15,6 +15,12 @@ const getLocalISODate = (d: Date = new Date()) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
+const formatDisplayDate = (isoDate: string) => {
+  const parts = isoDate.split('-');
+  if (parts.length !== 3) return isoDate;
+  return `${parts[2]}/${parts[1]}/${parts[0]}`; // DD/MM/YYYY
+};
+
 type FilterMode = 'all' | '7d' | '30d';
 
 export function HistoryPage() {
@@ -54,7 +60,7 @@ export function HistoryPage() {
   const exportCSV = () => {
     const header = 'Fecha,Consumo (ml),Meta (ml),% Logrado\n';
     const rows = records.map(r =>
-      `${r.date},${r.consumed_ml},${r.goal_ml},${percentage(r.consumed_ml, r.goal_ml)}`
+      `${formatDisplayDate(r.date)},${r.consumed_ml},${r.goal_ml},${percentage(r.consumed_ml, r.goal_ml)}`
     ).join('\n');
     const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -133,7 +139,7 @@ export function HistoryPage() {
                     };
                     return (
                       <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-4 px-6">{day.date}</td>
+                        <td className="py-4 px-6">{formatDisplayDate(day.date)}</td>
                         <td className="py-4 px-6 font-medium">{day.consumed_ml}ml</td>
                         <td className="py-4 px-6 text-gray-600">{day.goal_ml}ml</td>
                         <td className="py-4 px-6">

@@ -250,7 +250,7 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
   const saveSettings = async (newSettings: UserSettings) => {
     if (!user) return;
     setSettings(newSettings);
-    setDailyGoal(dailyGoal); // keep in sync
+    setDailyGoal(newSettings.daily_goal); // keep in sync
 
     const { error } = await supabase.from('user_settings').upsert({
       user_id: user.id,
@@ -258,8 +258,14 @@ export function HydrationProvider({ children }: { children: ReactNode }) {
       led_enabled: newSettings.led_enabled,
       alerts_enabled: newSettings.alerts_enabled,
       reminder_interval_min: newSettings.reminder_interval_min,
-      daily_goal: dailyGoal,
+      daily_goal: newSettings.daily_goal,
     });
+
+    // Sincronizar la meta de hoy para el dispositivo Wi-Fi
+    await supabase.from('daily_hydration')
+      .update({ goal_ml: newSettings.daily_goal })
+      .eq('user_id', user.id)
+      .eq('date', getLocalISODate());
 
     if (error) {
       showToast('Error al guardar la configuración.', 'error');
