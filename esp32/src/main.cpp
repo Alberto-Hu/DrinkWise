@@ -155,16 +155,18 @@ void loop() {
   }
 
   // 3. LEER BÁSCULA 
-  float weight = -scale.get_units(10); 
+  float weight = scale.get_units(10); 
   if (weight < 0) weight = 0.0;
   
-  if (weight < 20 && !isGlassLifted && lastStableWeight > 30) {
+  // A. El vaso se levanta de la mesa
+  if (weight < 10 && !isGlassLifted && lastStableWeight > 15) {
     isGlassLifted = true;
     isStabilizing = false;
     liftTime = millis();
   }
   
-  if (weight > 30 && isGlassLifted && !isStabilizing && (millis() - liftTime > 1000)) {
+  // B. El vaso toca la báscula de regreso
+  if (weight > 15 && isGlassLifted && !isStabilizing && (millis() - liftTime > 1000)) {
     isStabilizing = true;
     placedTime = millis();
   }
@@ -176,7 +178,7 @@ void loop() {
     float diff = lastStableWeight - weight;
     
     if (diff >= 10) {
-      int amountDrank = (int)diff;
+      int amountDrank = (int)round(diff);
       
       Serial.print("DRINK:");
       Serial.println(amountDrank);
@@ -189,7 +191,8 @@ void loop() {
     lastStableWeight = weight;
   }
   
-  if (!isGlassLifted && !isStabilizing && weight > 30 && lastStableWeight < 30) {
+  // D. Peso inicial
+  if (!isGlassLifted && !isStabilizing && weight > 15 && lastStableWeight < 15) {
     lastStableWeight = weight;
   }
   
