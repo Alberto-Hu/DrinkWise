@@ -93,8 +93,8 @@ export function PracticePage() {
   };
 
   return (
-     <div className="flex-1 overflow-y-auto bg-gray-50 p-8 h-full">
-      <div className="max-w-3xl mx-auto space-y-6 pb-12">
+    <div className="flex-1 overflow-y-auto bg-gray-50 p-2 sm:p-8 h-full">
+      <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6 pb-12">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
@@ -132,7 +132,7 @@ export function PracticePage() {
           </div>
         </div>
         
-        <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-200 text-center space-y-8 relative overflow-hidden">
+        <div className="bg-white p-4 sm:p-10 rounded-2xl shadow-sm border border-gray-200 text-center space-y-6 sm:space-y-8 relative overflow-hidden">
            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 to-red-500"></div>
            
            <h2 className="text-xl text-gray-500 font-medium">
@@ -174,28 +174,28 @@ export function PracticePage() {
         </div>
         
         {showList && (
-          <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
-             <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+          <div className="bg-white p-3 sm:p-8 rounded-2xl shadow-sm border border-gray-200 mt-6 sm:mt-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
+             <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
                <span>📖</span> Lista de Lonches
              </h3>
              <p className="text-sm text-gray-500 mb-6">Haz clic en un platillo para ocultarlo/mostrarlo en las preguntas.</p>
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+             <div className="grid grid-cols-4 gap-1.5 sm:gap-4">
                {LUNCHES.map(l => {
                  const isInactive = inactiveIds.includes(l.id);
                  return (
                    <div 
                      key={l.id} 
                      onClick={() => toggleLunch(l.id)}
-                     className={`flex flex-col p-4 rounded-xl border transition-all cursor-pointer select-none ${
+                     className={`flex flex-col p-1 sm:p-4 min-h-[75px] sm:min-h-0 justify-center items-center text-center rounded-lg sm:rounded-xl border transition-all cursor-pointer select-none ${
                        isInactive 
                          ? 'bg-gray-50 border-gray-200 opacity-50 grayscale hover:opacity-75' 
                          : 'bg-orange-50/50 hover:bg-orange-50 border-orange-100 hover:border-orange-300 hover:shadow-sm'
                      }`}
                    >
-                     <span className={`font-bold text-sm mb-1 ${isInactive ? 'text-gray-500' : 'text-orange-700'}`}>
-                       LOUNCH #{l.id} {isInactive && '(Oculto)'}
+                     <span className={`font-bold text-[9px] sm:text-sm mb-0.5 sm:mb-1 ${isInactive ? 'text-gray-500' : 'text-orange-700'}`}>
+                       <span className="hidden sm:inline">LOUNCH </span>#{l.id}
                      </span>
-                     <span className={`font-medium leading-tight ${isInactive ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                     <span className={`text-[9px] sm:text-base font-medium leading-[1.1] sm:leading-tight break-words w-full ${isInactive ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
                        {l.name}
                      </span>
                    </div>
