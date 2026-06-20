@@ -6,6 +6,7 @@ import { HistoryPage } from './pages/HistoryPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LoginPage } from './pages/LoginPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { PracticePage } from './pages/PracticePage';
 
 export const router = createBrowserRouter([
   {
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
           { path: 'alertas', Component: AlertsPage },
           { path: 'historial', Component: HistoryPage },
           { path: 'configuracion', Component: SettingsPage },
+          { path: 'practica', Component: PracticePage },
         ],
       }
     ]

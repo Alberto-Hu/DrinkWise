@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router';
-import { LayoutGrid, Bell, History, Settings, Coffee, LogOut } from 'lucide-react';
+import { LayoutGrid, Bell, History, Settings, Coffee, LogOut, BookOpen } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useHydration } from '../context/HydrationContext';
 
@@ -13,6 +13,7 @@ export function Sidebar() {
     { path: '/alertas', label: 'Alertas', icon: Bell },
     { path: '/historial', label: 'Historial', icon: History },
     { path: '/configuracion', label: 'Configuración', icon: Settings },
+    { path: '/practica', label: 'Práctica de Menú', icon: BookOpen },
   ];
 
   return (
