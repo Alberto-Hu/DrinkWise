@@ -175,13 +175,11 @@ export function PracticePage() {
         
         {showList && (
           <div className="bg-white p-3 sm:p-8 rounded-2xl shadow-sm border border-gray-200 mt-6 sm:mt-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
-             <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+             <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                <span>📖</span> Lista de Lonches
              </h3>
-             <p className="text-sm text-gray-500 mb-4">Haz clic en un platillo para ocultarlo/mostrarlo en las preguntas.</p>
 
-             <div className="mb-4 sm:mb-6 space-y-2">
-               <p className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">Ocultar por fila completa:</p>
+             <div className="mb-4 sm:mb-6">
                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                  {[0,1,2,3,4,5,6,7].map(rowIndex => {
                    const rowIds = [rowIndex*4 + 1, rowIndex*4 + 2, rowIndex*4 + 3, rowIndex*4 + 4];
@@ -216,27 +214,19 @@ export function PracticePage() {
              </div>
 
              <div className="grid grid-cols-4 gap-1.5 sm:gap-4">
-               {LUNCHES.map(l => {
-                 const isInactive = inactiveIds.includes(l.id);
-                 return (
+               {LUNCHES.filter(l => !inactiveIds.includes(l.id)).map(l => (
                    <div 
                      key={l.id} 
-                     onClick={() => toggleLunch(l.id)}
-                     className={`flex flex-col p-1 sm:p-4 min-h-[75px] sm:min-h-0 justify-center items-center text-center rounded-lg sm:rounded-xl border transition-all cursor-pointer select-none ${
-                       isInactive 
-                         ? 'bg-gray-50 border-gray-200 opacity-50 grayscale hover:opacity-75' 
-                         : 'bg-orange-50/50 hover:bg-orange-50 border-orange-100 hover:border-orange-300 hover:shadow-sm'
-                     }`}
+                     className="flex flex-col p-1 sm:p-4 min-h-[75px] sm:min-h-0 justify-center items-center text-center rounded-lg sm:rounded-xl border border-orange-100 bg-orange-50/50"
                    >
-                     <span className={`font-bold text-[9px] sm:text-sm mb-0.5 sm:mb-1 ${isInactive ? 'text-gray-500' : 'text-orange-700'}`}>
+                     <span className="font-bold text-[9px] sm:text-sm mb-0.5 sm:mb-1 text-orange-700">
                        <span className="hidden sm:inline">LOUNCH </span>#{l.id}
                      </span>
-                     <span className={`text-[9px] sm:text-base font-medium leading-[1.1] sm:leading-tight break-words w-full ${isInactive ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                     <span className="text-[9px] sm:text-base font-medium leading-[1.1] sm:leading-tight break-words w-full text-gray-900">
                        {l.name}
                      </span>
                    </div>
-                 );
-               })}
+               ))}
              </div>
           </div>
         )}
