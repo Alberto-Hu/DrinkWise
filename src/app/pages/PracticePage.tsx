@@ -217,7 +217,8 @@ export function PracticePage() {
                {LUNCHES.filter(l => !inactiveIds.includes(l.id)).map(l => (
                    <div 
                      key={l.id} 
-                     className="flex flex-col p-1 sm:p-4 min-h-[75px] sm:min-h-0 justify-center items-center text-center rounded-lg sm:rounded-xl border border-orange-100 bg-orange-50/50"
+                     onClick={() => toggleLunch(l.id)}
+                     className="flex flex-col p-1 sm:p-4 min-h-[75px] sm:min-h-0 justify-center items-center text-center rounded-lg sm:rounded-xl border border-orange-100 bg-orange-50/50 cursor-pointer hover:bg-orange-100 transition-colors"
                    >
                      <span className="font-bold text-[9px] sm:text-sm mb-0.5 sm:mb-1 text-orange-700">
                        <span className="hidden sm:inline">LOUNCH </span>#{l.id}
