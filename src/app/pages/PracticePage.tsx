@@ -139,7 +139,7 @@ export function PracticePage() {
              {askDish ? '¿Qué platillo es el...' : '¿Qué número de lounch es el...'}
            </h2>
            
-           <div className="text-5xl font-extrabold text-gray-900 py-4">
+           <div className="text-3xl sm:text-5xl font-extrabold text-gray-900 py-4 break-words px-2 leading-tight">
              {askDish ? `Lounch #${currentLunch.id}` : currentLunch.name}
            </div>
 
@@ -179,23 +179,23 @@ export function PracticePage() {
                <span>📖</span> Lista de Lonches
              </h3>
              <p className="text-sm text-gray-500 mb-6">Haz clic en un platillo para ocultarlo/mostrarlo en las preguntas.</p>
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+             <div className="grid grid-cols-4 gap-2 sm:gap-4">
                {LUNCHES.map(l => {
                  const isInactive = inactiveIds.includes(l.id);
                  return (
                    <div 
                      key={l.id} 
                      onClick={() => toggleLunch(l.id)}
-                     className={`flex flex-col p-4 rounded-xl border transition-all cursor-pointer select-none ${
+                     className={`flex flex-col p-2 sm:p-4 rounded-xl border transition-all cursor-pointer select-none ${
                        isInactive 
                          ? 'bg-gray-50 border-gray-200 opacity-50 grayscale hover:opacity-75' 
                          : 'bg-orange-50/50 hover:bg-orange-50 border-orange-100 hover:border-orange-300 hover:shadow-sm'
                      }`}
                    >
-                     <span className={`font-bold text-sm mb-1 ${isInactive ? 'text-gray-500' : 'text-orange-700'}`}>
-                       LOUNCH #{l.id} {isInactive && '(Oculto)'}
+                     <span className={`font-bold text-[9px] sm:text-sm mb-0.5 sm:mb-1 ${isInactive ? 'text-gray-500' : 'text-orange-700'}`}>
+                       <span className="hidden sm:inline">LOUNCH </span>#{l.id}
                      </span>
-                     <span className={`font-medium leading-tight ${isInactive ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                     <span className={`text-[10px] sm:text-base font-medium leading-tight ${isInactive ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
                        {l.name}
                      </span>
                    </div>
