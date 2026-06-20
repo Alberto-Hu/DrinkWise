@@ -214,20 +214,31 @@ export function PracticePage() {
              </div>
 
              <div className="grid grid-cols-4 gap-1.5 sm:gap-4">
-               {LUNCHES.filter(l => !inactiveIds.includes(l.id)).map(l => (
+               {LUNCHES.filter(l => {
+                  const rowIndex = Math.floor((l.id - 1) / 4);
+                  const rowIds = [rowIndex*4 + 1, rowIndex*4 + 2, rowIndex*4 + 3, rowIndex*4 + 4];
+                  return !rowIds.every(id => inactiveIds.includes(id));
+               }).map(l => {
+                 const isInactive = inactiveIds.includes(l.id);
+                 return (
                    <div 
                      key={l.id} 
                      onClick={() => toggleLunch(l.id)}
-                     className="flex flex-col p-1 sm:p-4 min-h-[75px] sm:min-h-0 justify-center items-center text-center rounded-lg sm:rounded-xl border border-orange-100 bg-orange-50/50 cursor-pointer hover:bg-orange-100 transition-colors"
+                     className={`flex flex-col p-1 sm:p-4 min-h-[75px] sm:min-h-0 justify-center items-center text-center rounded-lg sm:rounded-xl border transition-all cursor-pointer select-none ${
+                       isInactive 
+                         ? 'bg-gray-50 border-gray-200 opacity-50 grayscale hover:opacity-75' 
+                         : 'border-orange-100 bg-orange-50/50 hover:bg-orange-100'
+                     }`}
                    >
-                     <span className="font-bold text-[9px] sm:text-sm mb-0.5 sm:mb-1 text-orange-700">
+                     <span className={`font-bold text-[9px] sm:text-sm mb-0.5 sm:mb-1 ${isInactive ? 'text-gray-500' : 'text-orange-700'}`}>
                        <span className="hidden sm:inline">LOUNCH </span>#{l.id}
                      </span>
-                     <span className="text-[9px] sm:text-base font-medium leading-[1.1] sm:leading-tight break-words w-full text-gray-900">
+                     <span className={`text-[9px] sm:text-base font-medium leading-[1.1] sm:leading-tight break-words w-full ${isInactive ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
                        {l.name}
                      </span>
                    </div>
-               ))}
+                 );
+               })}
              </div>
           </div>
         )}
