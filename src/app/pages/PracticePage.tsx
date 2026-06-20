@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { RefreshCw, BookOpen, Eye, EyeOff } from 'lucide-react';
 
 const LUNCHES = [
@@ -42,10 +42,26 @@ export function PracticePage() {
   const [revealed, setRevealed] = useState(false);
   const [showList, setShowList] = useState(false);
   const [questionMode, setQuestionMode] = useState<'random' | 'askDish' | 'askNumber'>('random');
+  const [inactiveIds, setInactiveIds] = useState<number[]>([]);
+  const poolRef = useRef<number[]>([]);
 
-  const pickRandom = (mode = questionMode) => {
-    const randomLunch = LUNCHES[Math.floor(Math.random() * LUNCHES.length)];
+  const pickRandom = (mode = questionMode, currentInactive = inactiveIds) => {
+    let activePool = poolRef.current.filter(id => !currentInactive.includes(id));
+    
+    if (activePool.length === 0) {
+      activePool = LUNCHES.filter(l => !currentInactive.includes(l.id)).map(l => l.id);
+    }
+    
+    if (activePool.length === 0) return;
+
+    const randomIndex = Math.floor(Math.random() * activePool.length);
+    const selectedId = activePool[randomIndex];
+    
+    poolRef.current = activePool.filter(id => id !== selectedId);
+
+    const randomLunch = LUNCHES.find(l => l.id === selectedId)!;
     setCurrentLunch(randomLunch);
+    
     if (mode === 'random') {
       setAskDish(Math.random() > 0.5);
     } else {
@@ -55,13 +71,25 @@ export function PracticePage() {
   };
 
   useEffect(() => {
-    pickRandom(questionMode);
+    pickRandom(questionMode, inactiveIds);
   }, []);
 
   const handleModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newMode = e.target.value as 'random' | 'askDish' | 'askNumber';
     setQuestionMode(newMode);
-    pickRandom(newMode);
+    pickRandom(newMode, inactiveIds);
+  };
+
+  const toggleLunch = (id: number) => {
+    setInactiveIds(prev => {
+      const isNowInactive = !prev.includes(id);
+      const nextInactive = isNowInactive ? [...prev, id] : prev.filter(i => i !== id);
+      
+      if (isNowInactive && currentLunch.id === id) {
+         pickRandom(questionMode, nextInactive);
+      }
+      return nextInactive;
+    });
   };
 
   return (
@@ -95,7 +123,7 @@ export function PracticePage() {
             </button>
 
             <button 
-              onClick={() => pickRandom(questionMode)} 
+              onClick={() => pickRandom(questionMode, inactiveIds)} 
               className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
               title="Saltar Pregunta"
             >
@@ -134,7 +162,7 @@ export function PracticePage() {
                  
                  <div className="flex gap-4 justify-center">
                    <button 
-                     onClick={() => pickRandom(questionMode)}
+                     onClick={() => pickRandom(questionMode, inactiveIds)}
                      className="px-8 py-4 bg-gray-900 text-white font-bold text-lg rounded-xl hover:bg-gray-800 transition-colors shadow-md"
                    >
                      Siguiente Pregunta
@@ -147,16 +175,32 @@ export function PracticePage() {
         
         {showList && (
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 mt-8 animate-in fade-in slide-in-from-bottom-4 duration-300">
-             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+             <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
                <span>📖</span> Lista de Lonches
              </h3>
+             <p className="text-sm text-gray-500 mb-6">Haz clic en un platillo para ocultarlo/mostrarlo en las preguntas.</p>
              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-               {LUNCHES.map(l => (
-                 <div key={l.id} className="flex flex-col p-4 bg-orange-50/50 hover:bg-orange-50 rounded-xl border border-orange-100 transition-colors">
-                   <span className="font-bold text-orange-700 text-sm mb-1">LOUNCH #{l.id}</span>
-                   <span className="text-gray-900 font-medium leading-tight">{l.name}</span>
-                 </div>
-               ))}
+               {LUNCHES.map(l => {
+                 const isInactive = inactiveIds.includes(l.id);
+                 return (
+                   <div 
+                     key={l.id} 
+                     onClick={() => toggleLunch(l.id)}
+                     className={`flex flex-col p-4 rounded-xl border transition-all cursor-pointer select-none ${
+                       isInactive 
+                         ? 'bg-gray-50 border-gray-200 opacity-50 grayscale hover:opacity-75' 
+                         : 'bg-orange-50/50 hover:bg-orange-50 border-orange-100 hover:border-orange-300 hover:shadow-sm'
+                     }`}
+                   >
+                     <span className={`font-bold text-sm mb-1 ${isInactive ? 'text-gray-500' : 'text-orange-700'}`}>
+                       LOUNCH #{l.id} {isInactive && '(Oculto)'}
+                     </span>
+                     <span className={`font-medium leading-tight ${isInactive ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                       {l.name}
+                     </span>
+                   </div>
+                 );
+               })}
              </div>
           </div>
         )}
