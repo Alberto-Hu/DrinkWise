@@ -178,7 +178,43 @@ export function PracticePage() {
              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
                <span>📖</span> Lista de Lonches
              </h3>
-             <p className="text-sm text-gray-500 mb-6">Haz clic en un platillo para ocultarlo/mostrarlo en las preguntas.</p>
+             <p className="text-sm text-gray-500 mb-4">Haz clic en un platillo para ocultarlo/mostrarlo en las preguntas.</p>
+
+             <div className="mb-4 sm:mb-6 space-y-2">
+               <p className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">Ocultar por fila completa:</p>
+               <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                 {[0,1,2,3,4,5,6,7].map(rowIndex => {
+                   const rowIds = [rowIndex*4 + 1, rowIndex*4 + 2, rowIndex*4 + 3, rowIndex*4 + 4];
+                   const isRowHidden = rowIds.every(id => inactiveIds.includes(id));
+                   return (
+                     <button
+                       key={rowIndex}
+                       onClick={() => {
+                         if (isRowHidden) {
+                           setInactiveIds(prev => prev.filter(id => !rowIds.includes(id)));
+                         } else {
+                           setInactiveIds(prev => {
+                             const next = Array.from(new Set([...prev, ...rowIds]));
+                             if (rowIds.includes(currentLunch.id)) {
+                                pickRandom(questionMode, next);
+                             }
+                             return next;
+                           });
+                         }
+                       }}
+                       className={`px-2 py-1 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-medium rounded-md sm:rounded-lg border transition-colors ${
+                          isRowHidden 
+                            ? 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200' 
+                            : 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100'
+                       }`}
+                     >
+                       Fila {rowIndex + 1}
+                     </button>
+                   )
+                 })}
+               </div>
+             </div>
+
              <div className="grid grid-cols-4 gap-1.5 sm:gap-4">
                {LUNCHES.map(l => {
                  const isInactive = inactiveIds.includes(l.id);
